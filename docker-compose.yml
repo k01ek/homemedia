@@ -1,0 +1,74 @@
+version: '2' 
+services:
+  plex:
+    container_name: plex
+    image: linuxserver/plex
+    restart: unless-stopped
+    network_mode: host
+    mem_limit: 1500m
+    environment:
+      - VERSION=latest
+      - TZ=Asia/Yekaterinburg
+      - PUID=1000
+      - PGID=1000
+    #hostname: ms-plex
+    volumes:
+      - /var/plex:/config
+      #- /opt/transcode:/transcode
+      - /mnt/content/media/complete:/data/movies
+      - /mnt/content/media/tvshows:/data/tvshows
+  plexconnect:
+    build: ./plexconnect
+    container_name: plexconnect
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      - USERID=1000
+      - GROUPID=1000
+    volumes:
+      - /var/plexconnect:/PlexConnect
+#  dlna:
+#    image: minidlna
+#    restart: always
+#    volumes:
+#      - /mnt/content/media:/opt/Videos
+#    ports:
+#      - "8200:8200"
+#      - "1900:1900/udp"
+#    network_mode: "host"
+#    environment:
+#      - PGID=1000 
+#      - PUID=1000
+
+  transmission:
+    image: linuxserver/transmission
+    restart: always
+    ports:
+      - "9091:9091"
+      - "51413:51413"
+      - "51413:51413/udp"
+    volumes:
+      - /var/transmission/data:/config
+      - /mnt/content/media:/downloads
+      - /var/transmission/watch:/watch
+    environment:
+      - TZ=Asia/Yekaterinburg
+      - PUID=1000
+      - PGID=1000
+
+  samba: 
+    command: '-s "media;/media"'
+    environment: 
+      - USERID=1000
+      - GROUPID=1000
+      - "TZ=Asia/Yekaterinburg"
+      - "NMBD=True"
+      - "RECYCLE=False"
+      - "USER=admin;admin;1001;admin"
+    #hostname: fileserver
+    image: dperson/samba
+    network_mode: host
+    restart: always
+    volumes: 
+      #- "samba:/etc/samba"
+      - "/mnt/content/media:/media"
